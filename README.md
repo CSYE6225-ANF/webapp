@@ -19,7 +19,7 @@ This Repository is part of CSYE6225 - Network Structures & Cloud Computing
 ### 1: Clone the repository
 Navigate to project repository after cloning.
 ```
-git clone https://github.com/CSYE6225-ANF/webapp.git
+git clone git@github.com:CSYE6225-ANF/webapp.git
 cd webapp
 ```
 
@@ -27,7 +27,7 @@ cd webapp
 ```
 npm install
 ```
-Other dependencies may include:
+Other dependencies that may need installation:
 ```
 npm install sequelize
 ```
