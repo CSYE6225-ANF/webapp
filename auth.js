@@ -53,7 +53,7 @@ const authenticate = async (req, res, next) => {
         next();
     } catch (error) {
         console.error("Error in authentication middleware:", error.message);
-        const status = error.message.includes("authorization header") ? 401 : 500;
+        const status = error.message.includes("authorization header") ? 401 : 500; //Unauthorized : Internal Error
         return res.status(status).json({ message: error.message });
     }
 };
