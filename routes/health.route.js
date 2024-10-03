@@ -8,8 +8,8 @@ const headers = {
     'X-Content-Type-Options': 'nosniff',
 };
 
-router.get('/healthz', healthz);  // Health check
-router.all('/healthz', (req, res) => res.status(405).header(headers).send());
+router.get('/', healthz);  // Health check
+router.all('/', (req, res) => res.status(405).header(headers).send());
 
 module.exports = router;  // Export the router
 

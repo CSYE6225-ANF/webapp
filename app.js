@@ -1,15 +1,15 @@
-const config = require("./config/config.js");
 const express = require('express');
-const routes = require("./routes/index");
-
 const app = express();
+const healthRoutes = require('./routes/health.route');
+const userRoutes = require('./routes/user.route');
 
+// Middleware to parse JSON
 app.use(express.json());
 
-app.use('/', routes);
+// Use health routes
+app.use('/healthz', healthRoutes);
 
-app.use('*', (req, res) => { // 404 Handler
-    res.status(404).send('Route not found');
-});
+// Use user routes
+app.use('/v1/user', userRoutes);
 
-module.exports = app;
+module.exports = app;  // Export the app

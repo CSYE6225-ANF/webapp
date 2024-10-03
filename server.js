@@ -2,8 +2,8 @@ const db = require("./models/index");
 const app = require("./app");
 const config = require("./config/config");
 
-const PORT = config.PORT;
-const HOSTNAME = config.HOSTNAME;
+const PORT = config.PORT || process.env.PORT || 8080; // Fallback to process.env.PORT or 8080
+const HOSTNAME = config.HOSTNAME || 'localhost';
 
 app.listen(PORT, async () => { //Starts the Express server and listens for incoming requests
     try {
@@ -11,6 +11,7 @@ app.listen(PORT, async () => { //Starts the Express server and listens for incom
         console.log('Database connected successfully.');
         console.log(`Server is running on http://${HOSTNAME}:${PORT}`);
     } catch (error) {
-        console.error('Error during server startup:', error);
+        console.error('Error during server startup:', error); // Handle database connection failure
+        process.exit(1);  // Exit the process with failure if the database connection fails
     }
 });
