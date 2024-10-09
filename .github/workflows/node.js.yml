@@ -1,6 +1,6 @@
 # This workflow is designed for building and testing a Node.js project
 
-name: Node.js CI
+name: Node.js_CI
 
 # Controls when the workflow will run
 on:
