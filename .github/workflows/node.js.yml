@@ -6,26 +6,28 @@ name: Node.js_CI
 on:
   # Triggers the workflow on pull request events for the "main" branch
   pull_request:
-    branches: [ "main" ]
+    branches:
+      main
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This job is responsible for building the Node.js project
   build:
     name: node.js build
-    # The type of runner that the job will run on (Ubuntu environment)
+    # The type of runner that the job will run on 
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Step 1: Check out the repository to the runner's working directory
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       # Step 2: Set up Node.js environment with the specified version
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20  # Use Node.js version 20
+          node-version: 22
 
       # Step 3: Install project dependencies using npm
       - name: Install dependencies
