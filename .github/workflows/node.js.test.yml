@@ -47,11 +47,15 @@ jobs:
         with:
           node-version: 22
 
-      # Step 3: Install project dependencies using npm
+      # Step 3: Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # Step 4: Set up environment variables from GitHub secrets
+      # Step 4: Install bcrypt
+      - name: Install bcrypt
+        run: npm install bcrypt
+
+      # Step 5: Set up environment variables from GitHub secrets
       - run: |
           echo > .env
           ls -al | grep .env
@@ -64,6 +68,6 @@ jobs:
           echo PORT=${{ secrets.PORT }} >> .env
           echo HOSTNAME=${{ secrets.HOSTNAME }} >> .env
 
-      # Step 5: Run tests using npm
+      # Step 5: Run tests
       - name: Run tests
         run: npm test
