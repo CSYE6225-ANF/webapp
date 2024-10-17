@@ -36,9 +36,7 @@ jobs:
       #     sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${{ secrets.DB_NAME }} TO ${{ secrets.DB_USER }};"
 
       - name: Run setup_db.sh to configure PostgreSQL
-        run: |
-          chmod +x ./setup_db.sh
-          ./setup_db.sh
+        run: sh ./scripts/setup_db.sh
         env:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USER: ${{ secrets.DB_USER }}
