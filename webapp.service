@@ -1,0 +1,19 @@
+[Unit]
+Description=Node.js Application Service
+After=network.target
+
+[Service]
+Type=simple
+User=csye6225
+Group=csye6225
+EnvironmentFile=/home/csye6225/webapp/.env
+WorkingDirectory=/home/csye6225/webapp/
+ExecStart=/usr/bin/node /home/csye6225/webapp/server.js
+Restart=on-failure
+RestartSec=3
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=nodejs-app
+
+[Install]
+WantedBy=multi-user.target
