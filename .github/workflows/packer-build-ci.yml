@@ -33,24 +33,8 @@ jobs:
       # sudo -u postgres psql -c "CREATE USER ${{ secrets.DB_USER }} WITH PASSWORD '${{ secrets.DB_PASSWORD }}';" # Create the user.
       - name: Configure PostgreSQL
         run: |
-          # Check if the database already exists
-          DB_EXISTS=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='${{secrets.DB_NAME}}'")
-          if [ "$DB_EXISTS" != "1" ]; then
-            echo "Database ${{secrets.DB_NAME}} does not exist. Creating..."
-            sudo -u postgres psql -c "CREATE DATABASE ${{secrets.DB_NAME}};"
-          else
-            echo "Database ${{secrets.DB_NAME}} already exists. Skipping creation."
-          fi
-      
-          # Check if the user already exists
-          USER_EXISTS=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='${{secrets.DB_USER}}'")
-          if [ "$USER_EXISTS" != "1" ]; then
-            echo "User ${{secrets.DB_USER}} does not exist. Creating..."
-            sudo -u postgres psql -c "CREATE USER ${{secrets.DB_USER}} WITH PASSWORD '${{secrets.DB_PASSWORD}}';"
-          else
-            echo "User ${{secrets.DB_USER}} already exists. Skipping creation."
-          fi
-          
+          sudo -u postgres psql -c "CREATE DATABASE ${{ secrets.DB_NAME }};" # Create the database.
+          sudo -u postgres psql -c "CREATE USER ${{ secrets.DB_USER }} WITH PASSWORD '${{ secrets.DB_PASSWORD }}';"
           sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${{ secrets.DB_NAME }} TO ${{ secrets.DB_USER }};"
 
       # Step 5: Create a .env file and store environment variables in it, using GitHub secrets.
