@@ -37,13 +37,7 @@ jobs:
           sudo -u postgres psql -c "CREATE USER ${{ secrets.DB_USER }} WITH PASSWORD '${{ secrets.DB_PASSWORD }}';"
           sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${{ secrets.DB_NAME }} TO ${{ secrets.DB_USER }};"
 
-      # Step 5: Zip Artifacts
-      - name: Zip Artifact
-        run: |
-          zip -r webapp.zip ./
-          ls  -al
-
-      # Step 6: Create a .env file and store environment variables in it, using GitHub secrets.
+      # Step 5: Create a .env file and store environment variables in it, using GitHub secrets.
       - name: Configure Environment Variables
         run: |
           echo > .env # Create an empty .env file.
@@ -56,6 +50,12 @@ jobs:
           echo PORT=${{ secrets.PORT }} >> .env # Add the application port.
           echo HOSTNAME=${{ secrets.HOSTNAME }} >> .env # Add the hostname.
 
+      # Step 6: Zip Artifacts
+      - name: Zip Artifact
+        run: |
+          zip -r webapp.zip ./
+          ls  -al
+          
       # Step 7: Run your project's tests (if any) to ensure everything is functioning before building the AMI.
       - name: Run Test
         run: |
