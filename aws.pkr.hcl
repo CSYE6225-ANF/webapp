@@ -44,21 +44,6 @@ variable "ami_name_prefix" {
   default = "csye6225_webapp" # Prefix for your AMI name
 }
 
-variable "DB_PASSWORD" {
-  type    = string # Database password to be used in provisioning scripts
-  default = "postgres"
-}
-
-variable "DB_USER" {
-  type    = string # Database username to be used in provisioning scripts
-  default = "postgres"
-}
-
-variable "DB_NAME" {
-  type    = string # Database name to be used in provisioning scripts
-  default = "postgres"
-}
-
 # Define the source block for the AMI creation
 source "amazon-ebs" "ubuntu-ami" {
   region          = var.aws_region                                                    # AWS region for the AMI
@@ -104,11 +89,6 @@ build {
 
   # Use the shell provisioner with environment variables
   provisioner "shell" {
-    environment_vars = [
-      "DB_PASSWORD=${var.DB_PASSWORD}",
-      "DB_USER=${var.DB_USER}",
-      "DB_NAME=${var.DB_NAME}"
-    ]
 
     scripts = [
       "scripts/create_user.sh",
