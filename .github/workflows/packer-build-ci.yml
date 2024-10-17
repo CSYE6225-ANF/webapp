@@ -32,6 +32,8 @@ jobs:
       # Step 4: Configure PostgreSQL by creating the database and user with the credentials stored in secrets.
       - name: Configure PostgreSQL
         run: |
+          cd /tmp # Change to a safe directory to avoid permission issues
+          
           # Check if the database already exists
           DB_EXISTS=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='${{secrets.DB_NAME}}'")
           if [ "$DB_EXISTS" != "1" ]; then
@@ -57,6 +59,7 @@ jobs:
           # Log databases and users
           sudo -u postgres psql -c '\l' # List databases
           sudo -u postgres psql -c '\du' # List users
+
 
       # Step 5: Create a .env file and store environment variables in it, using GitHub secrets.
       - name: Configure Environment Variables
