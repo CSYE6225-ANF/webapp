@@ -33,8 +33,7 @@ jobs:
       # sudo -u postgres psql -c "CREATE USER ${{ secrets.DB_USER }} WITH PASSWORD '${{ secrets.DB_PASSWORD }}';" # Create the user.
       - name: Configure PostgreSQL
         run: |
-          sudo -u postgres psql -c "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = '${{ secrets.DB_NAME }}') THEN CREATE DATABASE ${{ secrets.DB_NAME }}; END IF; END $$;"
-          sudo -u postgres psql -c "DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '${{ secrets.DB_USER }}') THEN CREATE USER ${{ secrets.DB_USER }} WITH PASSWORD '${{ secrets.DB_PASSWORD }}'; END IF; END $$;"
+          sudo -u postgres psql -c "ALTER USER ${{ secrets.DB_USER }} WITH PASSWORD '${{ secrets.DB_PASSWORD }}';"
           sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${{ secrets.DB_NAME }} TO ${{ secrets.DB_USER }};
 
       # Step 5: Zip Artifacts
