@@ -30,9 +30,9 @@ jobs:
     
       # Step 4: Configure PostgreSQL by creating the database and user with the credentials stored in secrets.
       # sudo -u postgres psql -c "CREATE DATABASE ${{ secrets.DB_NAME }};" # Create the database.
+      # sudo -u postgres psql -c "CREATE USER ${{ secrets.DB_USER }} WITH PASSWORD '${{ secrets.DB_PASSWORD }}';" # Create the user.
       - name: Configure PostgreSQL
         run: |
-          sudo -u postgres psql -c "CREATE USER ${{ secrets.DB_USER }} WITH PASSWORD '${{ secrets.DB_PASSWORD }}';" # Create the user.
           sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${{ secrets.DB_NAME }} TO ${{ secrets.DB_USER }};" # Grant privileges to the user.
 
       # Step 5: Zip Artifacts
