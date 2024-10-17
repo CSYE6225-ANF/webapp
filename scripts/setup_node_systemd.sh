@@ -6,12 +6,13 @@ sudo apt-get update
 sudo apt-get install -y curl unzip
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash - 
 sudo apt-get install -y nodejs
+sudo apt-get install zip -y
+
 
 # Handling Web App Files
 echo "Handling Web Application Files..."
 
 # Ensure the application directory exists
-sudo mkdir -p /home/csye6225
 sudo mkdir -p /home/csye6225/webapp
 
 # Copy the zipped application file to the target directory
@@ -19,11 +20,11 @@ echo "Copying the application file..."
 sudo cp /tmp/webapp.zip /home/csye6225/webapp.zip
 
 # Navigate to the application directory
-cd /home/csye6225
+cd /home/csye6225/webapp
 
 # Unzip the application files
 echo "Unzipping the application files..."
-sudo unzip webapp.zip -d /home/csye6225/
+sudo unzip webapp.zip -d /home/csye6225/webapp
 
 # Change ownership and permissions
 echo "Changing permissions..."
@@ -37,6 +38,10 @@ sudo rm -f /home/csye6225/webapp.zip
 # Install dependencies for the web application
 cd /home/csye6225/webapp
 sudo npm install
+sudo npm install bcrypt
+
+# Copy the webapp.service file to the systemd directory
+sudo cp /home/csye6225/webapp/webapp.service /etc/systemd/system/webapp.service
 
 # Reload systemd to pick up the new service
 sudo systemctl daemon-reload

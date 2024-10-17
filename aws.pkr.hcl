@@ -92,6 +92,16 @@ build {
   name    = "AWS-packer" # Name of the build
   sources = ["source.amazon-ebs.ubuntu-ami"]
 
+  provisioner "file" {
+    source      = "./webapp.zip"
+    destination = "/tmp/webapp.zip"
+  }
+
+  provisioner "file" {
+    source      = "./webapp.service"
+    destination = "/tmp/webapp.service"
+  }
+
   # Use the shell provisioner with environment variables
   provisioner "shell" {
     environment_vars = [
