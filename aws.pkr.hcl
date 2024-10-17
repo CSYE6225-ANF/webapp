@@ -92,7 +92,6 @@ build {
 
     scripts = [
       "scripts/create_user.sh",
-      "scripts/setup_db.sh",
       "scripts/setup_node_systemd.sh",
       "scripts/start_app_systemd.sh"
     ]
