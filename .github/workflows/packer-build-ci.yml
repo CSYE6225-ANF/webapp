@@ -26,23 +26,38 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y postgresql postgresql-contrib
-          sudo systemctl start postgresql 
+          sudo systemctl start postgresql
+          sudo systemctl status postgresql # Log PostgreSQL service status
     
       # Step 4: Configure PostgreSQL by creating the database and user with the credentials stored in secrets.
-      # - name: Configure PostgreSQL
-      #   run: |
-      #     sudo -u postgres psql -c "CREATE DATABASE ${{ secrets.DB_NAME }};" # Create the database.
-      #     sudo -u postgres psql -c "CREATE USER ${{ secrets.DB_USER }} WITH PASSWORD '${{ secrets.DB_PASSWORD }}';"
-      #     sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${{ secrets.DB_NAME }} TO ${{ secrets.DB_USER }};"
-
-      - name: Run setup_db.sh to configure PostgreSQL
-        run: sh ./scripts/setup_db.sh
-        env:
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-
+      - name: Configure PostgreSQL
+        run: |
+          # Check if the database already exists
+          DB_EXISTS=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='${{secrets.DB_NAME}}'")
+          if [ "$DB_EXISTS" != "1" ]; then
+            echo "Database ${{secrets.DB_NAME}} does not exist. Creating..."
+            sudo -u postgres psql -c "CREATE DATABASE ${{secrets.DB_NAME}};"
+          else
+            echo "Database ${{secrets.DB_NAME}} already exists. Skipping creation."
+          fi
       
+          # Check if the user already exists
+          USER_EXISTS=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='${{secrets.DB_USER}}'")
+          if [ "$USER_EXISTS" != "1" ]; then
+            echo "User ${{secrets.DB_USER}} does not exist. Creating..."
+            sudo -u postgres psql -c "CREATE USER ${{secrets.DB_USER}} WITH PASSWORD '${{secrets.DB_PASSWORD}}';"
+          else
+            echo "User ${{secrets.DB_USER}} already exists. Skipping creation."
+          fi
+      
+          # Grant privileges to the user on the database
+          echo "Granting all privileges on database ${{secrets.DB_NAME}} to user ${{secrets.DB_USER}}."
+          sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${{secrets.DB_NAME}} TO ${{secrets.DB_USER}};"
+
+          # Log databases and users
+          sudo -u postgres psql -c '\l' # List databases
+          sudo -u postgres psql -c '\du' # List users
+
       # Step 5: Create a .env file and store environment variables in it, using GitHub secrets.
       - name: Configure Environment Variables
         run: |
@@ -56,18 +71,21 @@ jobs:
           echo PORT=${{ secrets.PORT }} >> .env # Add the application port.
           echo HOSTNAME=${{ secrets.HOSTNAME }} >> .env # Add the hostname.
 
+          echo "Environment variables configured in .env:"
+          cat .env | grep -v "DB_PASSWORD" # Print all environment variables except sensitive info
+
       # Step 6: Zip Artifacts
       - name: Zip Artifact
         run: |
           zip -r webapp.zip ./
-          ls  -al
+          ls -al
           
       # Step 7: Run your project's tests (if any) to ensure everything is functioning before building the AMI.
       - name: Run Test
         run: |
           npm install # Install the Node.js dependencies.
           npm install bcrypt
-          npm test # Run the tests (ensure your tests are configured).
+          npm test || { echo "Tests failed! Check the logs above for details."; exit 1; } # Log test failure
 
       # Step 8: Configure AWS credentials using GitHub secrets for authentication.
       - name: Configure AWS credentials
@@ -77,13 +95,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} # AWS Secret Key from secrets.
           aws-region: ${{ secrets.AWS_REGION }} # AWS Region where the resources are created.
 
-
       # Step 9: Set up Packer on the GitHub Actions runner.
       - name: Set up Packer
         uses: hashicorp/setup-packer@main
         with:
           version: 'latest' # Use the latest version of Packer.
-
 
       # Step 10: Run the Packer format command to ensure proper formatting of the Packer template.
       - name: Packer Format
@@ -97,9 +113,11 @@ jobs:
       # Step 12: Validate the Packer configuration using the variables file created in step 10.
       - name: Packer Validate
         id: validate
-        run: "packer validate ./aws.pkr.hcl" # Validate the Packer configuration.  --var-file=aws.pkrvars.hcl 
+        run: |
+          packer validate ./aws.pkr.hcl || { echo "Packer validation failed"; exit 1; } # Log validation failure
 
       # Step 13: Build the Packer image (custom AMI) if validation succeeds.
       - name: Packer Build
         id: build
-        run: "packer build ./aws.pkr.hcl" # Build the custom image (AMI). --var-file=aws.pkrvars.hcl 
+        run: |
+          packer build ./aws.pkr.hcl || { echo "Packer build failed"; exit 1; } # Log build failure
