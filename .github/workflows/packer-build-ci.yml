@@ -2,7 +2,7 @@ name: Packer Build CI
 
 # Trigger the workflow only on push to the main branch (after a PR is merged).
 on:
-  pull:
+  push:
     branches: [ "main" ] # Only trigger when code is pushed to the 'main' branch.
 
 jobs:
