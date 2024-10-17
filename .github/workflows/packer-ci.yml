@@ -1,0 +1,37 @@
+name: Packer CI
+
+# This workflow is triggered on pull request creation and updates.
+on:
+    # Triggers the workflow on pull request events for the "main" branch
+    pull_request:
+      branches: [ "main" ]
+
+jobs:
+  packer_ci:
+    name: packer ci status check
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout the code from the repository
+      - name: Checkout repositoryGithubActionService 
+        uses: actions/checkout@v3
+
+      # Step 2: Install Packer
+      - name: Install Packer
+        uses: hashicorp/setup-packer@main
+        with:
+          version: 'latest'
+
+      # Step 3: Format check using Packer
+      - name: Run packer fmt
+        id: packer_fmt
+        run: packer fmt -check -diff ./aws.pkr.hcl
+
+      # Step 4: Initialize Packer (modern Packer workflow)
+      - name: Packer Init
+        id: packer_init
+        run: "packer init ./aws.pkr.hcl"
+
+      # Step 5: Validate the Packer template with the variables file
+      - name: Packer Validate
+        id: packer_validate
+        run:  "packer validate ./aws.pkr.hcl" #"packer validate --var-file=aws.pkrvars.hcl ./aws.pkr.hcl"
