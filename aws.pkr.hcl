@@ -92,16 +92,6 @@ build {
   name    = "AWS-packer" # Name of the build
   sources = ["source.amazon-ebs.ubuntu-ami"]
 
-  # Use the shell provisioner with environment variables
-  provisioner "shell" {
-    script = "scripts/setup.sh"
-    environment_vars = [
-      "DB_PASSWORD=${var.DB_PASSWORD}",
-      "DB_USER=${var.DB_USER}",
-      "DB_NAME=${var.DB_NAME}"
-    ]
-  }
-
   provisioner "file" {
     source      = "./webapp.zip"
     destination = "/tmp/webapp.zip"
@@ -112,8 +102,21 @@ build {
     destination = "/tmp/webapp.service"
   }
 
+  # Use the shell provisioner with environment variables
   provisioner "shell" {
-    script = "scripts/deploy.sh"
+
+    scripts = [
+      "scripts/create_user.sh",
+      "scripts/setup_db.sh",
+      "scripts/setup_node_systemd.sh",
+      "scripts/start_app_systemd.sh"
+    ]
+    environment_vars = [
+      "DB_PASSWORD=${var.DB_PASSWORD}",
+      "DB_USER=${var.DB_USER}",
+      "DB_NAME=${var.DB_NAME}"
+    ]
+
   }
 
 }
