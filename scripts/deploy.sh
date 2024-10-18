@@ -1,25 +1,30 @@
 #!/bin/bash
 
-# Set ownership and permissions for the web application directory and files
-echo "Setting ownership and permissions..."
+#echo "Changing permissions..."
 sudo chown -R csye6225:csye6225 /home/csye6225
-sudo chmod -R 775 /home/csye6225
 sudo chmod 500 /home/csye6225/server.js
 echo "Permissions and ownership set"
 
-# Remove old dependencies and reinstall Node.js packages
+# Remove the zip file after extraction
+echo "Cleaning up the zip file..."
+sudo rm -f /home/csye6225/webapp.zip
+
+# Install dependencies for the web application
 cd /home/csye6225
-sudo rm -rf node_modules package-lock.json
 sudo npm install
 sudo npm install bcrypt
 echo "Node.js dependencies installed"
 
-# Create a systemd service file for the web application
-echo "Configuring the systemd service..."
-sudo cp /home/csye6225/webapp.service /etc/systemd/system/webapp.service
-sudo chown root:root /etc/systemd/system/webapp.service
-sudo chmod 644 /etc/systemd/system/webapp.service
-echo "Systemd service file created and configured"
+# Copy the webapp.service file to the systemd directory
+if [ -f /home/csye6225/webapp.service ]; then
+    sudo cp /home/csye6225/webapp.service /etc/systemd/system/webapp.service
+    sudo chown root:root /etc/systemd/system/webapp.service
+    sudo chmod 644 /etc/systemd/system/webapp.service
+    echo "Systemd service file created and configured"
+else
+    echo "ERROR: /home/csye6225/webapp.service not found. Exiting script."
+    exit 1
+fi
 
 # Reload systemd to pick up the new service
 sudo systemctl daemon-reload
