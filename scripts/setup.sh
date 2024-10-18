@@ -1,5 +1,4 @@
 #!/bin/bash
-sleep 30
 
 # Set the non-interactive mode for apt
 export DEBIAN_FRONTEND=noninteractive
@@ -16,6 +15,7 @@ echo 'Installed system dependencies'
 # Install Node.js and npm (latest LTS version)
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
 sudo apt-get install -y nodejs
+sudo apt-get install zip -y
 echo 'Installed Node.js and npm'
 
 # Install bcrypt
