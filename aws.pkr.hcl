@@ -69,9 +69,10 @@ source "amazon-ebs" "ubuntu-ami" {
   ssh_username    = var.ssh_username                                                  # SSH username for the instance
   subnet_id       = var.subnet_id                                                     # Subnet ID where the instance will be launched
   ami_users = [
-    "911167899482", #dev
-    "557690626086"  #demo
-  ]                 # Private image
+    "911167899482",         #dev
+    "557690626086"          #demo
+  ]                         # Private image
+  boot_mode = "legacy-bios" # Set to legacy BIOS to support t2.medium
 
   # Block device mapping (root volume) configuration
   launch_block_device_mappings {
