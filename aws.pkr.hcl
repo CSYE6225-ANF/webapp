@@ -26,7 +26,7 @@ variable "ssh_username" {
 
 variable "instance_type" {
   type    = string
-  default = "t2.medium" # Default instance type
+  default = "t3.medium" # Default instance type
 }
 
 variable "subnet_id" {
@@ -72,7 +72,6 @@ source "amazon-ebs" "ubuntu-ami" {
     "911167899482",         #dev
     "557690626086"          #demo
   ]                         # Private image
-  boot_mode = "legacy-bios" # Set to legacy BIOS to support t2.medium
 
   # Block device mapping (root volume) configuration
   launch_block_device_mappings {
