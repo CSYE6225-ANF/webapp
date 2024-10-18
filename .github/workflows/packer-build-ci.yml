@@ -48,7 +48,7 @@ jobs:
       # Step 6: Format the Packer configuration
       - name: Packer Format
         id: format
-        run: packer fmt . # Format the Packer configuration files.
+        run: packer fmt ./aws.pkr.hcl # Format the Packer configuration files.
 
       # Step 7: Initialize Packer to download any necessary plugins
       - name: Packer Init
