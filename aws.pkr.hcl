@@ -16,7 +16,7 @@ variable "aws_region" {
 
 variable "source_ami" {
   type    = string
-  default = "ami-0866a3c8686eaeeba" # Ubuntu 24.04 LTS us-east-1
+  default = "ami-08cbf15038e1cb36a" # Ubuntu 24.04 LTS us-east-1
 }
 
 variable "ssh_username" {
@@ -26,7 +26,7 @@ variable "ssh_username" {
 
 variable "instance_type" {
   type    = string
-  default = "t2.medium" # Default instance type
+  default = "t4g.medium" # Default instance type
 }
 
 variable "subnet_id" {
@@ -42,6 +42,21 @@ variable "volume_size" {
 variable "ami_name_prefix" {
   type    = string
   default = "csye6225_webapp" # Prefix for your AMI name
+}
+
+variable "DB_PASSWORD" {
+  type    = string # Database password to be used in provisioning scripts
+  default = "postgres"
+}
+
+variable "DB_USER" {
+  type    = string # Database username to be used in provisioning scripts
+  default = "postgres"
+}
+
+variable "DB_NAME" {
+  type    = string # Database name to be used in provisioning scripts
+  default = "postgres"
 }
 
 # Define the source block for the AMI creation
@@ -68,8 +83,8 @@ source "amazon-ebs" "ubuntu-ami" {
 
   # AWS polling settings to control retries during AMI creation
   aws_polling {
-    delay_seconds = 30 # Time to wait between retries
-    max_attempts  = 10 # Number of attempts to create the AMI
+    delay_seconds = 120 # Time to wait between retries
+    max_attempts  = 10  # Number of attempts to create the AMI
   }
 }
 
@@ -77,26 +92,29 @@ build {
   name    = "AWS-packer" # Name of the build
   sources = ["source.amazon-ebs.ubuntu-ami"]
 
+  # Use the shell provisioner with environment variables
+  provisioner "shell" {
+    script = "scripts/setup.sh"
+    environment_vars = [
+      "DB_PASSWORD=${var.DB_PASSWORD}",
+      "DB_USER=${var.DB_USER}",
+      "DB_NAME=${var.DB_NAME}"
+    ]
+  }
+
   provisioner "file" {
     source      = "./webapp.zip"
     destination = "/tmp/webapp.zip"
   }
+  
 
   provisioner "file" {
     source      = "./webapp.service"
     destination = "/tmp/webapp.service"
   }
 
-  # Use the shell provisioner with environment variables
   provisioner "shell" {
-
-    scripts = [
-      "scripts/create_user.sh",
-      "scripts/setup_db.sh",
-      "scripts/setup_node_systemd.sh",
-      "scripts/start_app_systemd.sh"
-    ]
-
+    script = "scripts/deploy.sh"
   }
 
 }
