@@ -26,7 +26,7 @@ variable "ssh_username" {
 
 variable "instance_type" {
   type    = string
-  default = "t2.medium" # Default instance type
+  default =      "t2.medium" # Default instance type
 }
 
 variable "subnet_id" {
