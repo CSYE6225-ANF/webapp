@@ -26,7 +26,7 @@ variable "ssh_username" {
 
 variable "instance_type" {
   type    = string
-  default =      "t2.medium" # Default instance type
+  default = "t2.medium" # Default instance type
 }
 
 variable "subnet_id" {
@@ -93,7 +93,7 @@ build {
   sources = ["source.amazon-ebs.ubuntu-ami"]
 
   provisioner "file" {
-    source      = "./webapp.zip"
+    source      = "./webapp1.zip"
     destination = "/tmp/webapp.zip"
   }
 
