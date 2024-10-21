@@ -3,7 +3,7 @@ const app = require("./app");
 const config = require("./config/config");
 
 const PORT = config.PORT || process.env.PORT || 8080; // Fallback to process.env.PORT or 8080
-const HOSTNAME = config.HOSTNAME || 'localhost';
+const HOSTNAME = config.HOSTNAME || '0.0.0.0';
 
 app.listen(PORT, async () => { //Starts the Express server and listens for incoming requests
     try {
