@@ -1,11 +1,9 @@
 name: Packer Build CI
 
+# Trigger the workflow only on push to the main branch (after a PR is merged).
 on:
-  pull_request:
-    types:
-      - closed
-    branches:
-      - main # Trigger on push to the 'main' branch.
+  push:
+    branches: [ "main" ] # Only trigger when code is pushed to the 'main' branch.
 
 jobs:
   packer-build:
@@ -31,43 +29,32 @@ jobs:
         with:
           version: 'latest' # Use the latest version of Packer.
 
-      # Step 4: Create a .env file to pass secrets to your application (optional, if needed)
-      - name: Create .env file
-        run: |
-          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-          echo "DB_USER=${{ secrets.DB_USER }}" >> .env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
-
-      # Step 5: Zip the web application files (this step was missing)
+      # Step 4: Zip the web application files (this step was missing)
       - name: Zip the web application
         run: |
           zip -r webapp.zip ./
           ls -al # List the files to confirm the zip was created.
 
-      # Step 6: Format the Packer configuration
+      # Step 5: Format the Packer configuration
       - name: Packer Format
         id: format
         run: packer fmt ./aws.pkr.hcl # Format the Packer configuration files.
 
-      # Step 7: Initialize Packer to download any necessary plugins
+      # Step 6: Initialize Packer to download any necessary plugins
       - name: Packer Init
         id: init
         run: |
           packer init ./aws.pkr.hcl # Initialize the Packer configuration file (aws.pkr.hcl).
 
-      # Step 8: Validate the Packer configuration
+      # Step 7: Validate the Packer configuration
       - name: Packer Validate
         id: validate
         run: |
           packer validate ./aws.pkr.hcl # Validate the Packer configuration.
 
-      # Step 9: Run the Packer build
+      # Step 8: Run the Packer build
       # packer build ./aws.pkr.hcl # Build the AMI using Packer.
       - name: Run Packer build
         id: build
         run: |
-          packer build -var "DB_USER=${{ secrets.DB_USER }}" \
-                       -var "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" \
-                       -var "DB_NAME=${{ secrets.DB_NAME }}" \
-                       aws.pkr.hcl
+          packer build aws.pkr.hcl

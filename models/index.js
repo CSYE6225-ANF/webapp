@@ -5,6 +5,7 @@ const dbConfig = require("../config/config.js");
 const sequelize = new Sequelize(dbConfig.DB_NAME, dbConfig.DB_USER, dbConfig.DB_PASSWORD, {
     host: dbConfig.DB_HOST,
     dialect: dbConfig.dialect,
+    port: dbConfig.port, 
     logging: false, // Change to true for debugging
 });
 
