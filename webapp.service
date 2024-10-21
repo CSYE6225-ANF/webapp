@@ -6,11 +6,6 @@ After=network.target
 Type=simple
 User=csye6225
 Group=csye6225
-Environment=PORT=8080
-Environment=DB_USERNAME=postgres
-Environment=DB_PASSWORD=postgres
-Environment=DB_NAME=postgres
-Environment=DB_HOST=localhost
 WorkingDirectory=/home/csye6225/
 ExecStart=/usr/bin/node /home/csye6225/server.js
 Restart=on-failure
