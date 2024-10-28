@@ -38,6 +38,7 @@ sudo rm -f /home/csye6225/webapp.zip
 cd /home/csye6225
 sudo npm install
 sudo npm install bcrypt
+sudo npm install express multer
 
 # Copy the webapp.service file to the systemd directory
 sudo cp /home/csye6225/webapp.service /etc/systemd/system/webapp.service
