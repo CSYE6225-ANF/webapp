@@ -1,7 +1,7 @@
 const AWS = require("aws-sdk");
 const { v4: uuidv4 } = require("uuid");
 const Image = require("../models/image.model");
-const logger = require('../utils/logger');
+// const logger = require('../utils/logger');
 
 // Security headers to include in every response
 const headers = {
@@ -22,14 +22,14 @@ const uploadImage = async (req, res) => {
 
         // Validate file existence
         if (!file) {
-            logger.warn('No file provided in the request.');
+            // logger.warn('No file provided in the request.');
             return res.status(400).header(headers).json({ message: "No file provided." });
         }
 
         // Validate file type
         const allowedTypes = ["image/png", "image/jpg", "image/jpeg"];
         if (!allowedTypes.includes(file.mimetype)) {
-            logger.warn('Unsupported file type provided.');
+            // logger.warn('Unsupported file type provided.');
             return res.status(400).header(headers).json({ message: "Unsupported file type. Only PNG, JPG, and JPEG are allowed." });
         }
 
@@ -61,7 +61,7 @@ const uploadImage = async (req, res) => {
             user_id: userId,
         });
 
-        logger.info(`Image uploaded successfully for user ${userId} in ${duration}ms.`);
+        // logger.info(`Image uploaded successfully for user ${userId} in ${duration}ms.`);
         return res.status(201).header(headers).json({
             id: image.id,
             file_name: image.file_name,
@@ -70,7 +70,7 @@ const uploadImage = async (req, res) => {
             user_id: image.user_id,
         });
     } catch (error) {
-        logger.error(`Error during image upload: ${error.message}`);
+        // logger.error(`Error during image upload: ${error.message}`);
         return res.status(500).header(headers).json({ message: "Error uploading image" });
     }
 };
@@ -82,11 +82,11 @@ const getImage = async (req, res) => {
 
         const image = await Image.findOne({ where: { user_id: userId } });
         if (!image) {
-            logger.warn(`Profile image not found for user ${userId}.`);
+            // logger.warn(`Profile image not found for user ${userId}.`);
             return res.status(404).header(headers).json({ message: "Profile image not found." });
         }
 
-        logger.info(`Profile image retrieved successfully for user ${userId}.`);
+        // logger.info(`Profile image retrieved successfully for user ${userId}.`);
         return res.status(200).header(headers).json({
             id: image.id,
             file_name: image.file_name,
@@ -95,7 +95,7 @@ const getImage = async (req, res) => {
             user_id: image.user_id,
         });
     } catch (error) {
-        logger.error(`Error retrieving image for user: ${error.message}`);
+        // logger.error(`Error retrieving image for user: ${error.message}`);
         return res.status(500).header(headers).json({ message: "Error retrieving image" });
     }
 };
@@ -107,7 +107,7 @@ const deleteImage = async (req, res) => {
 
         const image = await Image.findOne({ where: { user_id: userId } });
         if (!image) {
-            logger.warn(`Profile image not found for user ${userId}.`);
+            // logger.warn(`Profile image not found for user ${userId}.`);
             return res.status(404).header(headers).json({ message: "Profile image not found." });
         }
 
@@ -120,10 +120,10 @@ const deleteImage = async (req, res) => {
         // Remove the image metadata from the database
         await image.destroy();
         
-        logger.info(`Profile image deleted successfully for user ${userId}.`);
+        // logger.info(`Profile image deleted successfully for user ${userId}.`);
         return res.status(204).header(headers).send(); // No Content
     } catch (error) {
-        logger.error(`Error deleting image for user: ${error.message}`);
+        // logger.error(`Error deleting image for user: ${error.message}`);
         return res.status(500).header(headers).json({ message: "Error deleting image" });
     }
 };
