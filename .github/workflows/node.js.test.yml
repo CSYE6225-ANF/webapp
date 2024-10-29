@@ -55,11 +55,11 @@ jobs:
       - name: Install bcrypt
         run: npm install bcrypt
 
-      # Step 5: Install winston
-      - name: Install winston
-        run: npm install winston
+      # Step 5: Install bcrypt
+      - name: Install node-statsd
+        run: npm install node-statsd
 
-      # Step 5: Set up environment variables from GitHub secrets
+      # Step 6: Set up environment variables from GitHub secrets
       - run: |
           echo > .env
           ls -al | grep .env
@@ -72,6 +72,6 @@ jobs:
           echo PORT=${{ secrets.PORT }} >> .env
           echo HOSTNAME=${{ secrets.HOSTNAME }} >> .env
 
-      # Step 5: Run tests
+      # Step 7: Run tests
       - name: Run tests
         run: npm test
