@@ -55,6 +55,10 @@ jobs:
       - name: Install bcrypt
         run: npm install bcrypt
 
+      # Step 5: Install winston
+      - name: Install winston
+        run: npm install winston
+
       # Step 5: Set up environment variables from GitHub secrets
       - run: |
           echo > .env
