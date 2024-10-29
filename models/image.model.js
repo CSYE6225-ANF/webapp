@@ -26,11 +26,15 @@ const Image = db.sequelize.define('Image', {
     user_id: {
         type: DataTypes.UUID,
         allowNull: false,
-        readOnly: true
+        readOnly: true,
+        references: {
+            model: 'user',
+            key: 'id'
+        },
     }
 }, {
     timestamps: false, // Disable automatic timestamps (createdAt, updatedAt)
-    tableName: 'images',
+    tableName: 'images', // Specify the table name
 });
 
 module.exports = Image;
