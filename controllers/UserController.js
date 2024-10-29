@@ -1,5 +1,7 @@
 const User = require("../models/user.model");
 const bcrypt = require('bcrypt');
+const logger = require('../utils/logger');
+const statsdClient = require('../utils/statsd');
 
 // Security headers to include in every response
 const headers = {
@@ -45,6 +47,9 @@ const validateRequestFields = (body, res) => {
 
 // Create a new user
 const createUser = async (req, res) => {
+    statsdClient.increment('api.createUser.count'); // Count API call
+    const startTime = Date.now(); // Start timing for the API call
+
     // Reject if URL contains query parameters
     if (req.originalUrl.includes('?')) {
         return res.status(400).header(headers).send({ message: 'Bad Request' });
@@ -55,10 +60,14 @@ const createUser = async (req, res) => {
 
     try {
         const { first_name, last_name, password, email } = req.body;
-
+        
+        const existingUserStartTime = Date.now(); // Start timing for DB query
         // Check if a user with the same email already exists
         const existingUser = await User.findOne({ where: { email } });
+        statsdClient.timing('db.query.findOne', Date.now() - existingUserStartTime); // Log DB query time
+        
         if (existingUser) {
+            logger.warn(`User creation failed: Email ${email} already exists.`);
             return res.status(409).header(headers).send({ message: 'Email already exists' });
         }
 
@@ -71,6 +80,7 @@ const createUser = async (req, res) => {
             email,
             password: hashedPassword
         });
+        statsdClient.timing('db.query.create', Date.now() - newUserStartTime); // Log DB query time
 
         // Return success response with new user information (NO password)
         res.status(201).header(headers).send({
@@ -82,14 +92,19 @@ const createUser = async (req, res) => {
             account_updated: newUser.account_updated
         });
     } catch (err) {
-        console.error('Error during user creation:', err);
+        logger.error(`Error during user creation: ${err.message}`);
+        // console.error('Error during user creation:', err);
         return res.status(400).header(headers).send({ message: 'Invalid request' });
+    } finally {
+        statsdClient.timing('api.createUser.duration', Date.now() - startTime); // Log API execution time
     }
 };
 
 // Update an existing user
 
 const updateUser = async (req, res) => {
+    statsdClient.increment('api.updateUser.count'); // Count API call
+    const startTime = Date.now(); // Start timing for the API call
     const { first_name, last_name, password } = req.body;
     const authUser = req.authUser.email; // Using email for authentication
 
@@ -98,9 +113,12 @@ const updateUser = async (req, res) => {
     if (validationError) return validationError;
 
     try {
+        const findUserStartTime = Date.now(); // Start timing for DB query
         // Find the user by the authenticated user's email
         const existingUser = await User.findOne({ where: { email: authUser } });
+        statsdClient.timing('db.query.findOne', Date.now() - findUserStartTime); // Log DB query time
         if (!existingUser) {
+            logger.warn(`Update failed: User with email ${authUser} not found.`);
             return res.status(404).header(headers).send({ message: 'User Not Found' });
         }
 
@@ -110,16 +128,26 @@ const updateUser = async (req, res) => {
             last_name: last_name || existingUser.last_name,
             ...(password && { password: await bcrypt.hash(password, await bcrypt.genSalt(10)) })
         });
+
+        const saveUserStartTime = Date.now();
         await existingUser.save();
+        statsdClient.timing('db.query.save', Date.now() - saveUserStartTime); // Log DB query time
+
+        logger.info(`User updated successfully: ${authUser}`);
         return res.status(204).header(headers).send(); // No Content - success without response body
     } catch (err) {
-        console.error('Error updating user:', err);
+        logger.error(`Error updating user ${authUser}: ${err.message}`);
+        // console.error('Error updating user:', err);
         return res.status(400).header(headers).send({ message: 'Invalid request' });
+    } finally {
+        statsdClient.timing('api.updateUser.duration', Date.now() - startTime); // Log API execution time
     }
 };
 
 // Retrieve an existing user
 const getUser = async (req, res) => {
+    statsdClient.increment('api.getUser.count'); // Count API call
+    const startTime = Date.now(); // Start timing for the API call
     const requestContent = req.headers['content-length'];
     const authUser = req.authUser.email; // Using email for authentication
 
@@ -129,17 +157,25 @@ const getUser = async (req, res) => {
     }
 
     try {
+        const findUserStartTime = Date.now(); // Start timing for DB query
         const user = await User.findOne({
             where: { email: authUser },
             attributes: { exclude: ['password'] } // Should not be in response
         });
+        statsdClient.timing('db.query.findOne', Date.now() - findUserStartTime); // Log DB query time
+
         if (!user) {
+            logger.warn(`User retrieval failed: User with email ${authUser} not found.`);
             return res.status(404).header(headers).send({ message: 'User not found' });
         }
+        logger.info(`User retrieved successfully: ${authUser}`);
         return res.status(200).header(headers).send(user);
     } catch (err) {
-        console.error('Error getting user:', err);
+        logger.error(`Error getting user ${authUser}: ${err.message}`);
+        // console.error('Error getting user:', err);
         return res.status(400).header(headers).send({ message: 'Invalid request' });
+    } finally {
+        statsdClient.timing('api.getUser.duration', Date.now() - startTime); // Log API execution time
     }
 };
 
