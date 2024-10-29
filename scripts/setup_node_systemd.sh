@@ -38,6 +38,7 @@ sudo rm -f /home/csye6225/webapp.zip
 cd /home/csye6225
 sudo npm install
 sudo npm install bcrypt
+sudo npm install winston
 sudo npm install express multer
 sudo npm install aws-sdk
 sudo npm install node-statsd
