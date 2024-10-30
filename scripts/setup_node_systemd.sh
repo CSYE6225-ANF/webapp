@@ -35,13 +35,21 @@ echo "Cleaning up the zip file..."
 sudo rm -f /home/csye6225/webapp.zip
 
 # Install dependencies for the web application
+echo "Installing Node.js dependencies..."
 cd /home/csye6225
 sudo npm install
 sudo npm install bcrypt
-sudo npm install winston
 sudo npm install express multer
-sudo npm install aws-sdk
+sudo npm install @aws-sdk/client-s3
 sudo npm install node-statsd
+sudo npm install winston
+
+# Install CloudWatch Agent
+echo "Installing CloudWatch Agent..."
+wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+sudo dpkg -i amazon-cloudwatch-agent.deb
+rm amazon-cloudwatch-agent.deb
+sudo systemctl start amazon-cloudwatch-agent
 
 # Copy the webapp.service file to the systemd directory
 sudo cp /home/csye6225/webapp.service /etc/systemd/system/webapp.service

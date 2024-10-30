@@ -73,6 +73,8 @@ const createUser = async (req, res) => {
 
         // Hash the password before storing it in the database
         const hashedPassword = await bcrypt.hash(password, await bcrypt.genSalt(10));
+        const newUserStartTime = Date.now();
+        
         // Create a new user in the database
         const newUser = await User.create({
             first_name,

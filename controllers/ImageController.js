@@ -95,7 +95,7 @@ const getImage = async (req, res) => {
     const apiStart = Date.now();
 
     try {
-        const userId = req.authUser.id;
+        const userId = req.authUser.userId;
 
         // Find the image in the database
         const dbStart = Date.now();
@@ -130,7 +130,7 @@ const deleteImage = async (req, res) => {
     const apiStart = Date.now();
 
     try {
-        const userId = req.authUser.id;
+        const userId = req.authUser.userId;
 
         // Find the image in the database
         const dbStart = Date.now();
