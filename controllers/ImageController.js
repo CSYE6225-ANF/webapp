@@ -99,6 +99,7 @@ const uploadImage = async (req, res) => {
         return res.status(500).header(headers).json({ message: "Error uploading image" });
     } finally {
         statsdClient.timing('api.uploadImage.duration', Date.now() - apiStart); // Log API execution time
+        statsdClient.close();
     }
 };
 
@@ -134,6 +135,7 @@ const getImage = async (req, res) => {
         return res.status(500).header(headers).json({ message: "Error retrieving image" });
     } finally {
         statsdClient.timing('api.getImage.duration', Date.now() - apiStart); // Log API execution time
+        statsdClient.close();
     }
 };
 
@@ -181,6 +183,7 @@ const deleteImage = async (req, res) => {
         return res.status(500).header(headers).json({ message: "Error deleting image" });
     } finally {
         statsdClient.timing('api.deleteImage.duration', Date.now() - apiStart); // Log API execution time
+        statsdClient.close();
     }
 };
 
