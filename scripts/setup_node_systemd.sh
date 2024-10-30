@@ -40,7 +40,7 @@ sudo npm install
 sudo npm install bcrypt
 sudo npm install winston
 sudo npm install express multer
-sudo npm install aws-sdk
+sudo npm install @aws-sdk/client-s3
 sudo npm install node-statsd
 
 # Copy the webapp.service file to the systemd directory
