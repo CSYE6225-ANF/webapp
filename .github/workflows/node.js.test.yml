@@ -51,19 +51,23 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Step 4: Install bcrypt
+      # Step 4: Install dependencies
+      - name: Install aws-sdk
+        run: npm install aws-sdk
+
+      # Step 5: Install bcrypt
       - name: Install bcrypt
         run: npm install bcrypt
 
-      # Step 5: Install bcrypt
+      # Step 6: Install bcrypt
       - name: Install winston
         run: npm install winston
 
-      # Step 6: Install bcrypt
+      # Step 7: Install bcrypt
       - name: Install node-statsd
         run: npm install node-statsd
 
-      # Step 7: Set up environment variables from GitHub secrets
+      # Step 8: Set up environment variables from GitHub secrets
       - run: |
           echo > .env
           ls -al | grep .env
@@ -76,6 +80,6 @@ jobs:
           echo PORT=${{ secrets.PORT }} >> .env
           echo HOSTNAME=${{ secrets.HOSTNAME }} >> .env
 
-      # Step 8: Run tests
+      # Step 9: Run tests
       - name: Run tests
         run: npm test
