@@ -1,5 +1,5 @@
 // Import AWS SDK v3 clients and commands
-const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 const { v4: uuidv4 } = require("uuid");
 const Image = require("../models/image.model");
 const logger = require('../utils/logger');
@@ -95,7 +95,7 @@ const getImage = async (req, res) => {
     const apiStart = Date.now();
 
     try {
-        const userId = req.authUser.userId;
+        const userId = req.authUser.id;
 
         // Find the image in the database
         const dbStart = Date.now();
@@ -130,7 +130,7 @@ const deleteImage = async (req, res) => {
     const apiStart = Date.now();
 
     try {
-        const userId = req.authUser.userId;
+        const userId = req.authUser.id;
 
         // Find the image in the database
         const dbStart = Date.now();
