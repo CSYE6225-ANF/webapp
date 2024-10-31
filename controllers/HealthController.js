@@ -6,7 +6,7 @@ const statsdClient = require('../utils/statsd');
 const healthz = async (req, res) => {
     // Start tracking time for the API call
     const startTime = Date.now();
-    statsdClient.increment('api.healthz.call.count'); // Increment count for each call
+    statsdClient.increment('api.healthz.count'); // Increment count for each call
 
     const headers = {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -18,14 +18,12 @@ const healthz = async (req, res) => {
         // Check if the request method is GET
         if (req.method !== 'GET') {
             logger.warn('Non-GET method used on healthz endpoint');
-            statsdClient.increment('api.healthz.method_not_allowed.count');
             return res.status(405).header(headers).send(); // Method Not Allowed
         }
 
         // Reject requests with payloads
         if (Object.keys(req.body).length > 0 || req.originalUrl.includes('?')) {
             logger.warn('Payload included in healthz request');
-            statsdClient.increment('api.healthz.bad_request.count');
             return res.status(400).header(headers).send();
         }
 
@@ -35,11 +33,9 @@ const healthz = async (req, res) => {
 
         // Log successful health check
         logger.info('Health check successful');
-        statsdClient.increment('api.healthz.success.count');
     } catch (error) {
         // Log database authentication failure
         logger.error(`Database connection failed on healthz: ${error.message}`);
-        statsdClient.increment('api.healthz.service_unavailable.count');
         res.status(503).header(headers).send();  // Unsuccessful
     } finally {
         // Calculate and log the time taken for the request
