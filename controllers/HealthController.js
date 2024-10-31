@@ -1,31 +1,28 @@
-const request = require('supertest');
-const app = require('../app');  // Express app
-const db = require('../models/index'); // Import database connection
-const bcrypt = require('bcrypt');
-const User = require('../models/user.model');
+const db = require('../models/index');
 
-describe('Health Check API', () => {
-    // Test for successful connection
-    it('should return 200 OK if connection is successful', async () => {
-        const res = await request(app).get('/healthz');
-        expect(res.statusCode).toBe(200);
-    });
+const healthz = async (req, res) => {
+    const headers = {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'X-Content-Type-Options': 'nosniff',
+    };
+    
+    // Check if the request method is GET
+    if (req.method !== 'GET') {
+        return res.status(405).header(headers).send(); // Method Not Allowed
+    }
 
-    // Test for bad request when a payload is sent
-    it('should return 400 Bad Request if request includes any payload', async () => {
-        const res = await request(app).get('/healthz').send({ key: "value" });
-        expect(res.statusCode).toBe(400);
-    });
+    // Reject requests with payloads
+    if (Object.keys(req.body).length > 0 || req.originalUrl.includes('?')) {
+        return res.status(400).header(headers).send();
+    }
 
-    // Test for non-GET requests
-    it('should return 405 Method Not Allowed for non-GET requests', async () => {
-        const res = await request(app).post('/healthz');
-        expect(res.statusCode).toBe(405);
-    });
+    try {
+        await db.sequelize.authenticate();
+        res.status(200).header(headers).send();  // Successful
+    } catch (error) {
+        res.status(503).header(headers).send();  // Unsuccessful
+    }
+};
 
-    // Test for non-existent routes
-    it('should return 404 for non-existent routes', async () => {
-        const res = await request(app).get('/non-existent');
-        expect(res.statusCode).toBe(404);
-    });
-});
+module.exports = { healthz };  // Export the health check function
