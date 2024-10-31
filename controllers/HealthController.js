@@ -1,48 +1,31 @@
-const db = require('../models/index');
-const logger = require('../utils/logger');
-const statsdClient = require('../utils/statsd');
+const request = require('supertest');
+const app = require('../app');  // Express app
+const db = require('../models/index'); // Import database connection
+const bcrypt = require('bcrypt');
+const User = require('../models/user.model');
 
-// Health check API
-const healthz = async (req, res) => {
-    // Start tracking time for the API call
-    const startTime = Date.now();
-    statsdClient.increment('api.healthz.count'); // Increment count for each call
+describe('Health Check API', () => {
+    // Test for successful connection
+    it('should return 200 OK if connection is successful', async () => {
+        const res = await request(app).get('/healthz');
+        expect(res.statusCode).toBe(200);
+    });
 
-    const headers = {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'X-Content-Type-Options': 'nosniff',
-    };
+    // Test for bad request when a payload is sent
+    it('should return 400 Bad Request if request includes any payload', async () => {
+        const res = await request(app).get('/healthz').send({ key: "value" });
+        expect(res.statusCode).toBe(400);
+    });
 
-    try {
-        // Check if the request method is GET
-        if (req.method !== 'GET') {
-            logger.warn('Non-GET method used on healthz endpoint');
-            return res.status(405).header(headers).send(); // Method Not Allowed
-        }
+    // Test for non-GET requests
+    it('should return 405 Method Not Allowed for non-GET requests', async () => {
+        const res = await request(app).post('/healthz');
+        expect(res.statusCode).toBe(405);
+    });
 
-        // Reject requests with payloads
-        if (Object.keys(req.body).length > 0 || req.originalUrl.includes('?')) {
-            logger.warn('Payload included in healthz request');
-            return res.status(400).header(headers).send();
-        }
-
-        // Attempt to authenticate with the database
-        await db.sequelize.authenticate();
-        res.status(200).header(headers).send();  // Successful
-
-        // Log successful health check
-        logger.info('Health check successful');
-    } catch (error) {
-        // Log database authentication failure
-        logger.error(`Database connection failed on healthz: ${error.message}`);
-        res.status(503).header(headers).send();  // Unsuccessful
-    } finally {
-        // Calculate and log the time taken for the request
-        const duration = Date.now() - startTime;
-        statsdClient.timing('api.healthz.duration', duration); // Timer metric in ms
-        logger.info(`Healthz API call duration: ${duration}ms`);
-    }
-};
-
-module.exports = { healthz };
+    // Test for non-existent routes
+    it('should return 404 for non-existent routes', async () => {
+        const res = await request(app).get('/non-existent');
+        expect(res.statusCode).toBe(404);
+    });
+});
