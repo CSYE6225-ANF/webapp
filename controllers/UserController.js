@@ -85,6 +85,7 @@ const createUser = async (req, res) => {
         statsdClient.timing('db.query.create', Date.now() - newUserStartTime); // Log DB query time
 
         // Return success response with new user information (NO password)
+        logger.info(`User created successfully.`);
         res.status(201).header(headers).send({
             id: newUser.id,
             first_name: newUser.first_name,
