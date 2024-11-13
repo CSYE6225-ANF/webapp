@@ -88,7 +88,9 @@ const createUser = async (req, res) => {
         const messagePayload = JSON.stringify({
             firstName: first_name,
             lastName: last_name,
-            email: email
+            email: email,
+            verification_token: newUser.verification_token,
+            verification_token_expires: newUser.verification_token_expires,
         });
 
         const publishParams = {
