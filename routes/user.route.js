@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createUser, getUser, updateUser } = require('../controllers/UserController');
+const { createUser, getUser, updateUser, verifyEmail } = require('../controllers/UserController');
 const authenticate = require('../auth');
 
 const headers = {
@@ -11,6 +11,7 @@ const headers = {
 
 // Public route - create a new user (POST /v1/user)
 router.post('/', createUser);
+router.get('/verify-email', verifyEmail);
 
 // Authenticated route - get user info (GET /v1/user/self) and update user info (PUT /v1/user/self)
 router.get('/self', authenticate, getUser);
