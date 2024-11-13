@@ -84,6 +84,25 @@ const createUser = async (req, res) => {
         });
         statsdClient.timing('db.query.create', Date.now() - newUserStartTime); // Log DB query time
 
+        // Publish to SNS for email verification
+        const messagePayload = JSON.stringify({
+            firstName: first_name,
+            lastName: last_name,
+            email: email
+        });
+
+        const publishParams = {
+            Message: messagePayload,
+            TopicArn: topicArn,
+        };
+
+        try {
+            await snsClient.send(new PublishCommand(publishParams));
+            logger.info(`SNS message published for user: ${email}`);
+        } catch (snsError) {
+            logger.error(`Failed to publish SNS message: ${snsError.message}`);
+        }
+
         // Return success response with new user information (NO password)
         logger.info(`User created successfully.`);
         res.status(201).header(headers).send({
@@ -123,6 +142,12 @@ const updateUser = async (req, res) => {
         if (!existingUser) {
             logger.warn(`Update failed: User with email ${authUser} not found.`);
             return res.status(404).header(headers).send({ message: 'User Not Found' });
+        }
+
+        // Check if the user has verified their email
+        if (!existingUser.email_verified) {
+            logger.warn(`Email verification required`);
+            return res.status(403).header(headers).send({ message: 'Email verification required' });
         }
 
         // Update user details (if a new password is provided, hash it before saving)
@@ -171,6 +196,13 @@ const getUser = async (req, res) => {
             logger.warn(`User retrieval failed: User with email ${authUser} not found.`);
             return res.status(404).header(headers).send({ message: 'User not found' });
         }
+
+        // Check if the user has verified their email
+        if (!user.email_verified) {
+            logger.warn(`Email verification required`);
+            return res.status(403).header(headers).send({ message: 'Email verification required' });
+        }
+        
         logger.info(`User retrieved successfully: ${authUser}`);
         return res.status(200).header(headers).send(user);
     } catch (err) {
@@ -182,9 +214,58 @@ const getUser = async (req, res) => {
     }
 };
 
+const verifyEmail = async (req, res) => {
+    // Extract the token from the query parameter
+    const token = req.query.token;
+
+    // Check if the token is provided; if not, log an error and return a 400 response
+    if (!token) {
+        logger.error(`Token is missing from API request: ${req.originalUrl}`);
+        return res.status(400).json({ message: "Verification token is required" });
+    }
+
+    try {
+        // Look up the user in the database using the provided token
+        const user = await User.findOne({
+            where: {
+                verification_token: token
+            }
+        });
+
+        // If no user is found or the token does not match, log a warning and return a 400 response
+        if (!user) {
+            logger.warn('User not found or token does not match');
+            return res.status(400).json({ message: "Verification link is invalid." });
+        }
+
+        // Check if the token has expired by comparing the current time with the token's expiration
+        if (new Date() > user.verification_token_expires) {
+            logger.warn('Verification Link Expired');
+            return res.status(400).json({ message: "Verification link has expired." });
+        }
+
+        // Mark the user's email as verified and clear the verification token and expiration fields
+        user.email_verified = true;
+        user.verification_token = null;
+        user.verification_token_expires = null;
+
+        // Save the updated user record to the database
+        await user.save();
+
+        // Log the successful verification and return a 200 response with a success message
+        logger.info(`Email Verified for Username: ${user.username}`);
+        return res.status(200).json({ message: "Your email has been successfully verified" });
+    } catch (err) {
+        // Log any errors that occur during the verification process and return a 500 response
+        logger.error(`Email Verification Failed: ${err.message}`);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 // Exporting the functions
 module.exports = {
     createUser,
     updateUser,
-    getUser
+    getUser,
+    verifyEmail
 };
