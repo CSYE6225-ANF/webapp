@@ -49,6 +49,20 @@ const User = db.sequelize.define('User', {
             }
         }
     },
+    email_verified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false
+    },
+    verification_token: {
+        type: DataTypes.UUID,
+        allowNull: true, // Only populated when a verification email is sent
+        unique: true
+    },
+    verification_token_expires: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
     account_created: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
