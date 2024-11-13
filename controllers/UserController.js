@@ -251,12 +251,23 @@ const verifyEmail = async (req, res) => {
         user.verification_token = null;
         user.verification_token_expires = null;
 
-        // Save the updated user record to the database
-        await user.save();
+        // // Save the updated user record to the database
+        // await user.save();
 
-        // Log the successful verification and return a 200 response with a success message
-        logger.info(`Email Verified for Username: ${user.username}`);
-        return res.status(200).json({ message: "Your email has been successfully verified" });
+        // // Log the successful verification and return a 200 response with a success message
+        // logger.info(`Email Verified for Username: ${user.email}`);
+        // return res.status(200).json({ message: "Your email has been successfully verified" });
+        try {
+            // Save the updated user record to the database
+            await user.save();
+            // Log the successful verification using user.email or user.first_name
+            logger.info(`Email verified for user: ${user.email}`);
+            return res.status(200).json({ message: "Your email has been successfully verified" });
+        } catch (saveError) {
+            // Handle errors specific to saving the user
+            logger.error(`Failed to save user verification status for ${user.email}: ${saveError.message}`);
+            return res.status(500).json({ message: "Failed to update verification status" });
+        }
     } catch (err) {
         // Log any errors that occur during the verification process and return a 500 response
         logger.error(`Email Verification Failed: ${err.message}`);
