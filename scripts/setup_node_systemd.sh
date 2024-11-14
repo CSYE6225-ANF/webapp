@@ -43,6 +43,9 @@ sudo npm install express multer
 sudo npm install @aws-sdk/client-s3
 sudo npm install node-statsd
 sudo npm install winston
+sudo npm install @aws-sdk/client-sns
+sudo npm install pg
+sudo npm install uuid
 
 # Install CloudWatch Agent
 echo "Installing CloudWatch Agent..."
