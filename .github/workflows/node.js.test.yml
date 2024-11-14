@@ -71,7 +71,15 @@ jobs:
       - name: Install node-statsd
         run: npm install node-statsd
 
-      # Step 9: Set up environment variables from GitHub secrets
+      # Step 9: Install client-sns
+      - name: Install client-sns
+        run: npm install @aws-sdk/client-sns
+
+      #Step 10: Install pg
+      - name: Install pg
+        run: npm install pg
+
+      # Step 11: Set up environment variables from GitHub secrets
       - run: |
           echo > .env
           ls -al | grep .env
@@ -84,6 +92,6 @@ jobs:
           echo PORT=${{ secrets.PORT }} >> .env
           echo HOSTNAME=${{ secrets.HOSTNAME }} >> .env
 
-      # Step 10: Run tests
+      # Step 12: Run tests
       - name: Run tests
         run: npm test

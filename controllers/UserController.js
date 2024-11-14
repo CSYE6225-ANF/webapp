@@ -2,6 +2,9 @@ const User = require("../models/user.model");
 const bcrypt = require('bcrypt');
 const logger = require('../utils/logger');
 const statsdClient = require('../utils/statsd');
+const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
+const snsClient = new SNSClient({ region: 'us-east-1' });
+const topicArn = process.env.SNS_TOPIC_ARN;
 
 // Security headers to include in every response
 const headers = {
