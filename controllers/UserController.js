@@ -77,13 +77,17 @@ const createUser = async (req, res) => {
         // Hash the password before storing it in the database
         const hashedPassword = await bcrypt.hash(password, await bcrypt.genSalt(10));
         const newUserStartTime = Date.now();
+        const verificationToken = uuid.v4(); // Generate unique token
+        const verificationTokenExpires = new Date(Date.now() + 2 * 60 * 1000); // 2-minute expiration
         
         // Create a new user in the database
         const newUser = await User.create({
             first_name,
             last_name,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            verification_token: verificationToken,
+            verification_token_expires: verificationTokenExpires
         });
         statsdClient.timing('db.query.create', Date.now() - newUserStartTime); // Log DB query time
 
@@ -92,8 +96,8 @@ const createUser = async (req, res) => {
             firstName: first_name,
             lastName: last_name,
             email: email,
-            verification_token: newUser.verification_token,
-            verification_token_expires: newUser.verification_token_expires,
+            verification_token: verificationToken,
+            verification_token_expires: verificationTokenExpires,
         });
 
         const publishParams = {
@@ -186,7 +190,8 @@ const getUser = async (req, res) => {
 
     // Reject requests with content
     if (parseInt(requestContent) > 0 || req.originalUrl.includes('?')) {
-        return res.status(400).header(headers).send();
+        logger.warn(`Invalid request: GET requests should not have content or query parameters.`);
+        return res.status(400).header(headers).send({ message: "Invalid request: GET requests should not have content or query parameters." });
     }
 
     try {
