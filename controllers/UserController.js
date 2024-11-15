@@ -3,8 +3,8 @@ const bcrypt = require('bcrypt');
 const logger = require('../utils/logger');
 const statsdClient = require('../utils/statsd');
 const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
-const snsClient = new SNSClient({ region: 'us-east-1' });
-const topicArn = process.env.SNS_TOPIC_ARN;
+const snsClient = new SNSClient({ region: 'us-east-1' }); // Replace 'your-region' with actual region
+const topicArn = process.env.SNS_TOPIC_ARN; // Make sure SNS_TOPIC_ARN is in .env
 
 // Security headers to include in every response
 const headers = {
@@ -63,12 +63,12 @@ const createUser = async (req, res) => {
 
     try {
         const { first_name, last_name, password, email } = req.body;
-        
+
         const existingUserStartTime = Date.now(); // Start timing for DB query
         // Check if a user with the same email already exists
         const existingUser = await User.findOne({ where: { email } });
         statsdClient.timing('db.query.findOne', Date.now() - existingUserStartTime); // Log DB query time
-        
+
         if (existingUser) {
             logger.warn(`User creation failed: Email ${email} already exists.`);
             return res.status(409).header(headers).send({ message: 'Email already exists' });
@@ -79,7 +79,7 @@ const createUser = async (req, res) => {
         const newUserStartTime = Date.now();
         const verificationToken = uuid.v4(); // Generate unique token
         const verificationTokenExpires = new Date(Date.now() + 2 * 60 * 1000); // 2-minute expiration
-        
+
         // Create a new user in the database
         const newUser = await User.create({
             first_name,
@@ -132,7 +132,6 @@ const createUser = async (req, res) => {
 };
 
 // Update an existing user
-
 const updateUser = async (req, res) => {
     statsdClient.increment('api.updateUser.count'); // Count API call
     const startTime = Date.now(); // Start timing for the API call
@@ -212,7 +211,7 @@ const getUser = async (req, res) => {
             logger.warn(`Email verification required`);
             return res.status(403).header(headers).send({ message: 'Email verification required' });
         }
-        
+
         logger.info(`User retrieved successfully: ${authUser}`);
         return res.status(200).header(headers).send(user);
     } catch (err) {
@@ -256,8 +255,8 @@ const verifyEmail = async (req, res) => {
 
         // Mark the user's email as verified and clear the verification token and expiration fields
         user.email_verified = true;
-        user.verification_token = null;
-        user.verification_token_expires = null;
+        // user.verification_token = null;
+        // user.verification_token_expires = null;
 
         // // Save the updated user record to the database
         // await user.save();
