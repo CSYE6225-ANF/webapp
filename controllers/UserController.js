@@ -1,3 +1,4 @@
+const uuid = require('uuid');
 const User = require("../models/user.model");
 const bcrypt = require('bcrypt');
 const logger = require('../utils/logger');
@@ -255,8 +256,8 @@ const verifyEmail = async (req, res) => {
 
         // Mark the user's email as verified and clear the verification token and expiration fields
         user.email_verified = true;
-        // user.verification_token = null;
-        // user.verification_token_expires = null;
+        user.verification_token = null;
+        user.verification_token_expires = null;
 
         // // Save the updated user record to the database
         // await user.save();
