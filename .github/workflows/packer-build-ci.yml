@@ -10,51 +10,131 @@ jobs:
     name: Packer Build
     runs-on: ubuntu-latest
 
+    env:
+      ACCOUNT: ${{ secrets.ACCOUNT }} # Define ACCOUNT variable to switch between dev and demo
+
     steps:
       # Step 1: Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # Step 2: Configure AWS credentials
-      - name: Configure AWS credentials
+      # Step 2: Select environment-specific AWS credentials
+      - name: Configure AWS credentials based on environment
+        run: |
+          if [ "${ACCOUNT}" == "dev" ]; then
+            echo "Using dev credentials"
+            echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_DEV_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_DEV_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          elif [ "${ACCOUNT}" == "demo" ]; then
+            echo "Using demo credentials"
+            echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_DEMO_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          else
+            echo "Unknown environment: ${ACCOUNT}"
+            exit 1
+          fi
+
+      # Step 3: Configure AWS credentials using environment variables
+      - name: Set AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # Step 3: Install Packer using HashiCorp GitHub Action
+      # Step 4: Install Packer using HashiCorp GitHub Action
       - name: Set up Packer
         uses: hashicorp/setup-packer@main
         with:
           version: 'latest' # Use the latest version of Packer.
 
-      # Step 4: Zip the web application files (this step was missing)
+      # Step 65: Zip the web application files (this step was missing)
       - name: Zip the web application
         run: |
           zip -r webapp.zip ./
           ls -al # List the files to confirm the zip was created.
 
-      # Step 5: Format the Packer configuration
+      # Step 6: Format the Packer configuration
       - name: Packer Format
         id: format
         run: packer fmt ./aws.pkr.hcl # Format the Packer configuration files.
 
-      # Step 6: Initialize Packer to download any necessary plugins
+      # Step 7: Initialize Packer to download any necessary plugins
       - name: Packer Init
         id: init
         run: |
           packer init ./aws.pkr.hcl # Initialize the Packer configuration file (aws.pkr.hcl).
 
-      # Step 7: Validate the Packer configuration
+      # Step 8: Validate the Packer configuration
       - name: Packer Validate
         id: validate
         run: |
           packer validate ./aws.pkr.hcl # Validate the Packer configuration.
 
-      # Step 8: Run the Packer build
+      # Step 9: Run the Packer build
       # packer build ./aws.pkr.hcl # Build the AMI using Packer.
       - name: Run Packer build
         id: build
         run: |
           packer build aws.pkr.hcl
+      
+      # Step 10: Extract AMI ID from the Packer manifest
+      - name: Extract AMI ID
+        id: extract_ami_id
+        run: |
+          AMI_ID=$(jq -r '.builds[0].artifact_id' packer-output.json | cut -d: -f2)
+          echo "Extracted AMI ID: $AMI_ID"
+          echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
+
+      # Step 11: Create a new Launch Template version
+      - name: Create New Launch Template Version
+        run: |
+          aws ec2 create-launch-template-version \
+            --launch-template-name csye6225_launch_template \
+            --version-description "New version with updated AMI" \
+            --source-version 1 \
+            --launch-template-data '{"ImageId":"'"$AMI_ID"'"}'
+
+      # Step 12: Update Auto Scaling Group
+      - name: Update Auto Scaling Group with Latest Launch Template Version
+        run: |
+          LATEST_VERSION=$(aws ec2 describe-launch-template-versions \
+            --launch-template-name csye6225_launch_template \
+            --query 'LaunchTemplateVersions[-1].VersionNumber' \
+            --output text)
+          aws autoscaling update-auto-scaling-group \
+            --auto-scaling-group-name csye6225_asg \
+            --launch-template "LaunchTemplateName=csye6225_launch_template,Version=$LATEST_VERSION"
+
+      # Step 13: Initiate Instance Refresh
+      - name: Start Instance Refresh
+        id: refresh
+        run: |
+          REFRESH_ID=$(aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name csye6225_asg \
+            --preferences '{"MinHealthyPercentage": 90, "InstanceWarmup": 300}' \
+            --query 'InstanceRefreshId' \
+            --output text)
+          echo "Instance Refresh ID: $REFRESH_ID"
+          echo "REFRESH_ID=$REFRESH_ID" >> $GITHUB_ENV
+
+      # Step 14: Wait for Instance Refresh Completion
+      - name: Wait for Instance Refresh to Complete
+
+        run: |
+          STATUS="InProgress"
+          while [ "$STATUS" == "InProgress" ]; do
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name csye6225_asg \
+              --query 'InstanceRefreshes[?InstanceRefreshId==`'"$REFRESH_ID"'`].Status' \
+              --output text)
+            echo "Current Status: $STATUS"
+            if [ "$STATUS" == "Successful" ]; then
+              echo "Instance refresh completed successfully."
+              break
+            elif [ "$STATUS" == "Failed" ]; then
+              echo "Instance refresh failed."
+              exit 1
+            fi
+            echo "Instance refresh still in progress. Checking again..."
+          done
