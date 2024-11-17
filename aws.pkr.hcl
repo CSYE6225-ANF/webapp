@@ -46,13 +46,13 @@ variable "ami_name_prefix" {
 
 # Define the source block for the AMI creation
 source "amazon-ebs" "ubuntu-ami" {
-  region          = var.aws_region                                               # AWS region for the AMI
-  ami_name        = "${var.ami_name_prefix}_${clean_resource_name(timestamp())}" # AMI name with a timestamp
-  ami_description = "AMI for CSYE 6225 A4"                                       # AMI description
-  source_ami      = var.source_ami                                               # Base AMI (Ubuntu 24.04 LTS)
-  instance_type   = var.instance_type                                            # AWS EC2 instance type
-  ssh_username    = var.ssh_username                                             # SSH username for the instance
-  subnet_id       = var.subnet_id                                                # Subnet ID where the instance will be launched
+  region          = var.aws_region                                             # AWS region for the AMI
+  ami_name        = "${var.ami_name_prefix}_${replace(timestamp(), ":", "-")}" # AMI name with a timestamp
+  ami_description = "AMI for CSYE 6225 A4"                                     # AMI description
+  source_ami      = var.source_ami                                             # Base AMI (Ubuntu 24.04 LTS)
+  instance_type   = var.instance_type                                          # AWS EC2 instance type
+  ssh_username    = var.ssh_username                                           # SSH username for the instance
+  subnet_id       = var.subnet_id                                              # Subnet ID where the instance will be launched
   ami_users = [
     "911167899482", #dev
     "557690626086"  #demo
