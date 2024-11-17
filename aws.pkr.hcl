@@ -47,7 +47,7 @@ variable "ami_name_prefix" {
 # Define the source block for the AMI creation
 source "amazon-ebs" "ubuntu-ami" {
   region          = var.aws_region                                                    # AWS region for the AMI
-  ami_name        = "${var.ami_name_prefix}_${formatdate("YYYY_MM_DD", timestamp())}" # AMI name with a timestamp
+  ami_name        = "${var.ami_name_prefix}_${timestamp()}"                           # AMI name with a timestamp
   ami_description = "AMI for CSYE 6225 A4"                                            # AMI description
   source_ami      = var.source_ami                                                    # Base AMI (Ubuntu 24.04 LTS)
   instance_type   = var.instance_type                                                 # AWS EC2 instance type
