@@ -69,7 +69,7 @@ source "amazon-ebs" "ubuntu-ami" {
   # AWS polling settings to control retries during AMI creation
   aws_polling {
     delay_seconds = 120 # Time to wait between retries
-    max_attempts  = 10  # Number of attempts to create the AMI
+    max_attempts  = 20  # Number of attempts to create the AMI
   }
 }
 
