@@ -10,81 +10,70 @@ jobs:
     name: Packer Build
     runs-on: ubuntu-latest
 
-    env:
-      ACCOUNT: ${{ secrets.ACCOUNT }} # Define ACCOUNT variable to switch between dev and demo
-
     steps:
       # Step 1: Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # Step 2: Select environment-specific AWS credentials
-      - name: Configure AWS credentials based on environment
-        run: |
-          if [ "${ACCOUNT}" == "dev" ]; then
-            echo "Using dev credentials"
-            echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_DEV_ACCESS_KEY_ID }}" >> $GITHUB_ENV
-            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_DEV_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
-          elif [ "${ACCOUNT}" == "demo" ]; then
-            echo "Using demo credentials"
-            echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_DEMO_ACCESS_KEY_ID }}" >> $GITHUB_ENV
-            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
-          else
-            echo "Unknown environment: ${ACCOUNT}"
-            exit 1
-          fi
-
-      # Step 3: Configure AWS credentials using environment variables
-      - name: Set AWS credentials
+      # Step 2: Configure AWS credentials for Dev environments
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_DEV_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_DEV_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # Step 4: Install Packer using HashiCorp GitHub Action
+      # Step 3: Install Packer using HashiCorp GitHub Action
       - name: Set up Packer
         uses: hashicorp/setup-packer@main
         with:
           version: 'latest' # Use the latest version of Packer.
 
-      # Step 65: Zip the web application files (this step was missing)
+      # Step 4: Zip the web application files (this step was missing)
       - name: Zip the web application
         run: |
           zip -r webapp.zip ./
           ls -al # List the files to confirm the zip was created.
 
-      # Step 6: Format the Packer configuration
+      # Step 5: Format the Packer configuration
       - name: Packer Format
         id: format
         run: packer fmt ./aws.pkr.hcl # Format the Packer configuration files.
 
-      # Step 7: Initialize Packer to download any necessary plugins
+      # Step 6: Initialize Packer to download any necessary plugins
       - name: Packer Init
         id: init
         run: |
           packer init ./aws.pkr.hcl # Initialize the Packer configuration file (aws.pkr.hcl).
 
-      # Step 8: Validate the Packer configuration
+      # Step 7: Validate the Packer configuration
       - name: Packer Validate
         id: validate
         run: |
           packer validate ./aws.pkr.hcl # Validate the Packer configuration.
 
-      # Step 9: Run the Packer build
+      # Step 8: Run the Packer build
       # packer build ./aws.pkr.hcl # Build the AMI using Packer.
       - name: Run Packer build
         id: build
         run: |
           packer build aws.pkr.hcl
       
-      # Step 10: Extract AMI ID from the Packer manifest
+      # Step 9: Extract AMI ID from the Packer manifest
       - name: Extract AMI ID
         id: extract_ami_id
         run: |
           AMI_ID=$(jq -r '.builds[0].artifact_id' packer-output.json | cut -d: -f2)
           echo "Extracted AMI ID: $AMI_ID"
           echo "AMI_ID=$AMI_ID" >> $GITHUB_ENV
+      
+      # Step 10: Configure AWS credentials for Demo environments
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_DEMO_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       # Step 11: Create a new Launch Template version
       - name: Create New Launch Template Version
