@@ -126,4 +126,5 @@ jobs:
               exit 1
             fi
             echo "Instance refresh still in progress. Checking again..."
+            sleep 30
           done
