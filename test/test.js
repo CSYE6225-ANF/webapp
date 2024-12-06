@@ -7,19 +7,19 @@ const User = require('../models/user.model');
 describe('Health Check API', () => {
     // Test for successful connection
     it('should return 200 OK if connection is successful', async () => {
-        const res = await request(app).get('/healthzz');
+        const res = await request(app).get('/healthz');
         expect(res.statusCode).toBe(200);
     });
 
     // Test for bad request when a payload is sent
     it('should return 400 Bad Request if request includes any payload', async () => {
-        const res = await request(app).get('/healthzz').send({ key: "value" });
+        const res = await request(app).get('/healthz').send({ key: "value" });
         expect(res.statusCode).toBe(400);
     });
 
     // Test for non-GET requests
     it('should return 405 Method Not Allowed for non-GET requests', async () => {
-        const res = await request(app).post('/healthzz');
+        const res = await request(app).post('/healthz');
         expect(res.statusCode).toBe(405);
     });
 
